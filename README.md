@@ -3,6 +3,8 @@ Eris [![NPM version](https://img.shields.io/npm/v/eris.svg?style=flat-square)](h
 
 A NodeJS wrapper for interfacing with Discord.
 
+Changed `User-Agent` and gateway's `browser` values
+
 Installing
 ----------
 
