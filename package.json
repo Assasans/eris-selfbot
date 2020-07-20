@@ -1,5 +1,5 @@
 {
-  "name": "eris",
+  "name": "@assasans/eris-selfbot",
   "version": "0.13.4",
   "description": "A NodeJS Discord library",
   "main": "./index.js",
