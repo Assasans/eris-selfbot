@@ -1,19 +1,17 @@
 {
   "name": "@assasans/eris-selfbot",
-  "version": "0.13.4",
+  "version": "0.13.5",
   "description": "A NodeJS Discord library",
   "main": "./index.js",
   "exports": {
     ".": [
       {
-        "require": "./index.js",
-        "import": "./esm.mjs"
+        "require": "./index.js"
       },
       "./index.js"
-    ],
-    "./esm": "./esm.mjs"
+    ]
   },
-  "typings": "./index.d.ts",
+  "types": "./index.d.ts",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -25,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/abalabahaha/eris.git"
+    "url": "git+https://github.com/Assasans/eris-selfbot.git"
   },
   "keywords": [
     "api",
@@ -34,12 +32,12 @@
     "eris",
     "wrapper"
   ],
-  "author": "abalabahaha",
+  "author": "Assasans",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/abalabahaha/eris/issues"
+    "url": "https://github.com/Assasans/eris-selfbot/issues"
   },
-  "homepage": "https://abal.moe/Eris/",
+  "homepage": "https://github.com/Assasans/eris-selfbot#readme",
   "dependencies": {
     "ws": "^7.2.1"
   },
@@ -49,19 +47,5 @@
     "@typescript-eslint/parser": "^2.14.0",
     "eslint": "^6.8.0",
     "typescript": "^3.7.4"
-  },
-  "optionalDependencies": {
-    "opusscript": "^0.0.7",
-    "tweetnacl": "^1.0.1"
-  },
-  "browser": {
-    "child_process": false,
-    "dgram": false,
-    "dns": false,
-    "fs": false,
-    "node-opus": false,
-    "tls": false,
-    "tweetnacl": false,
-    "ws": false
   }
 }

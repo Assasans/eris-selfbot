@@ -1,5 +1,4 @@
 import { EventEmitter } from "events";
-import { Readable as ReadableStream } from "stream";
 import { Agent as HTTPSAgent } from "https";
 import { IncomingMessage } from "http";
 
@@ -703,16 +702,6 @@ declare namespace Eris {
     totalResults: number;
     results: (Message & { hit?: boolean })[][];
   }
-  interface VoiceResourceOptions {
-    inlineVolume?: boolean;
-    voiceDataTimeout?: number;
-    inputArgs?: string[];
-    encoderArgs?: string[];
-    format?: string;
-    frameDuration?: number;
-    frameSize?: number;
-    sampleRate?: number;
-  }
   type PossiblyUncachedMessage = Message | { id: string; channel: TextableChannel | { id: string } };
   interface RawPacket {
     op: number;
@@ -724,7 +713,6 @@ declare namespace Eris {
   type IntentStrings = keyof Constants["Intents"];
   interface ClientOptions {
     autoreconnect?: boolean;
-    compress?: boolean;
     connectionTimeout?: number;
     disableEvents?: { [s: string]: boolean };
     allowedMentions?: AllowedMentions;
@@ -737,9 +725,7 @@ declare namespace Eris {
     lastShardID?: number;
     maxShards?: number | "auto";
     messageLimit?: number;
-    opusOnly?: boolean;
     restMode?: boolean;
-    seedVoiceConnections?: boolean;
     defaultImageFormat?: string;
     defaultImageSize?: number;
     ws?: any;
@@ -748,63 +734,7 @@ declare namespace Eris {
     reconnectAttempts?: number;
     reconnectDelay?: ReconnectDelayFunction;
   }
-  interface CommandClientOptions {
-    defaultHelpCommand?: boolean;
-    description?: string;
-    ignoreBots?: boolean;
-    ignoreSelf?: boolean;
-    name?: string;
-    owner?: string;
-    prefix?: string | string[];
-    defaultCommandOptions?: CommandOptions;
-  }
-  interface Hooks {
-    preCommand?: (msg: Message, args: string[]) => void;
-    postCheck?: (msg: Message, args: string[], checksPassed: boolean) => void;
-    postExecution?: (msg: Message, args: string[], executionSuccess: boolean) => void;
-    postCommand?: (msg: Message, args: string[], sent?: Message) => void;
-  }
   type GenericCheckFunction<T> = (msg: Message) => T;
-  interface CommandOptions {
-    aliases?: string[];
-    caseInsensitive?: boolean;
-    deleteCommand?: boolean;
-    argsRequired?: boolean;
-    guildOnly?: boolean;
-    dmOnly?: boolean;
-    description?: string;
-    fullDescription?: string;
-    usage?: string;
-    hooks?: Hooks;
-    requirements?: {
-      userIDs?: string[] | GenericCheckFunction<string[]>;
-      roleIDs?: string[] | GenericCheckFunction<string[]>;
-      roleNames?: string[] | GenericCheckFunction<string[]>;
-      permissions?: { [s: string]: boolean } | GenericCheckFunction<{ [s: string]: boolean }>;
-      custom?: GenericCheckFunction<void>;
-    };
-    cooldown?: number;
-    cooldownExclusions?: {
-      userIDs?: string[];
-      guildIDs?: string[];
-      channelIDs?: string[];
-    };
-    restartCooldown?: boolean;
-    cooldownReturns?: number;
-    cooldownMessage?: string | GenericCheckFunction<string>;
-    invalidUsageMessage?: string | GenericCheckFunction<string>;
-    permissionMessage?: string | GenericCheckFunction<string>;
-    errorMessage?: string | GenericCheckFunction<string>;
-    reactionButtons?: { emoji: string; type: string; response: CommandGenerator }[];
-    reactionButtonTimeout?: number;
-    defaultSubcommandOptions?: CommandOptions;
-    hidden?: boolean;
-  }
-  type CommandGeneratorFunction = (
-    msg: Message,
-    args: string[]
-  ) => Promise<MessageContent> | Promise<void> | MessageContent | void;
-  type CommandGenerator = CommandGeneratorFunction | MessageContent | MessageContent[] | CommandGeneratorFunction[];
 
   export class ShardManager extends Collection<Shard> {
     constructor(client: Client);
@@ -932,7 +862,6 @@ declare namespace Eris {
     privateChannelMap: { [s: string]: string };
     privateChannels: Collection<PrivateChannel>;
     groupChannels: Collection<GroupChannel>;
-    voiceConnections: Collection<VoiceConnection>;
     guildShardMap: { [s: string]: number };
     startTime: number;
     unavailableGuilds: Collection<UnavailableGuild>;
@@ -948,9 +877,6 @@ declare namespace Eris {
     getGateway(): Promise<{ url: string }>;
     getBotGateway(): Promise<{ url: string; shards: number; session_start_limit: { total: number; remaining: number; reset_after: number } }>;
     disconnect(options: { reconnect: boolean }): void;
-    joinVoiceChannel(channelID: string, options?: { shared?: boolean; opusOnly?: boolean }): Promise<VoiceConnection>;
-    leaveVoiceChannel(channelID: string): void;
-    closeVoiceConnection(guildID: string): void;
     editAFK(afk: boolean): void;
     editStatus(status?: Status, game?: ActivityPartial<BotActivityType>): void;
     getChannel(channelID: string): AnyChannel;
@@ -1215,76 +1141,6 @@ declare namespace Eris {
     toJSON(props?: string[]): JSONCache;
   }
 
-  export class VoiceConnection extends EventEmitter implements SimpleJSON {
-    id: string;
-    channelID: string;
-    connecting: boolean;
-    ready: boolean;
-    playing: boolean;
-    paused: boolean;
-    volume: number;
-    current?: {
-      startTime: number;
-      playTime: number;
-      pausedTimestamp?: number;
-      pausedTime?: number;
-      options: VoiceResourceOptions;
-    };
-    constructor(id: string, options?: { shard?: Shard; shared?: boolean; opusOnly?: boolean });
-    pause(): void;
-    play(resource: ReadableStream | string, options?: VoiceResourceOptions): void;
-    receive(type: string): VoiceDataStream;
-    resume(): void;
-    setVolume(volume: number): void;
-    stopPlaying(): void;
-    switchChannel(channelID: string): void;
-    updateVoiceState(selfMute: boolean, selfDeaf: boolean): void;
-    on(event: "debug" | "warn", listener: (message: string) => void): this;
-    on(event: "error" | "disconnect", listener: (err: Error) => void): this;
-    on(event: "pong", listener: (latency: number) => void): this;
-    on(event: "speakingStart", listener: (userID: string) => void): this;
-    on(event: "speakingStop", listener: (userID: string) => void): this;
-    on(event: "end", listener: () => void): this;
-    on(event: "userDisconnect", listener: (userID: string) => void): this;
-    toString(): string;
-    toJSON(props?: string[]): JSONCache;
-  }
-
-  export class SharedStream extends EventEmitter {
-    playing: boolean;
-    ended: boolean;
-    volume: number;
-    speaking: boolean;
-    current?: {
-      startTime: number;
-      playTime: number;
-      pausedTimestamp?: number;
-      pausedTime?: number;
-      options: VoiceResourceOptions;
-    };
-    add(connection: VoiceConnection): void;
-    play(resource: ReadableStream | string, options: VoiceResourceOptions): void;
-    remove(connection: VoiceConnection): void;
-    setVolume(volume: number): void;
-    stopPlaying(): void;
-  }
-
-  export class VoiceDataStream extends EventEmitter {
-    type: string;
-    constructor(type: string);
-    on(event: "data", listener: (data: Buffer, userID: string, timestamp: number, sequence: number) => void): this;
-  }
-
-  export class VoiceConnectionManager<T extends VoiceConnection> extends Collection<T> implements SimpleJSON {
-    // owo an undocumented class
-    constructor(vcObject: new () => T);
-    join(guildID: string, channelID: string, options: VoiceResourceOptions): Promise<VoiceConnection>;
-    leave(guildID: string): void;
-    switch(guildID: string, channelID: string): void;
-    toString(): string;
-    toJSON(props?: string[]): JSONCache;
-  }
-
   class Base implements SimpleJSON {
     id: string;
     createdAt: number;
@@ -1428,7 +1284,6 @@ declare namespace Eris {
     getRESTRoles(): Promise<Role[]>;
     getEmbed(): Promise<GuildEmbed>;
     getVoiceRegions(): Promise<VoiceRegion[]>;
-    leaveVoiceChannel(): void;
     editRole(roleID: string, options: RoleOptions): Promise<Role>;
     deleteRole(roleID: string): Promise<void>;
     getAuditLogs(limit?: number, before?: string, actionType?: number): Promise<GuildAuditLog>;
@@ -1626,8 +1481,6 @@ declare namespace Eris {
     voiceMembers: Collection<Member>;
     getInvites(): Promise<ChannelInvite[]>;
     createInvite(options?: CreateInviteOptions, reason?: string): Promise<ChannelInvite>;
-    join(options: VoiceResourceOptions): Promise<VoiceConnection>;
-    leave(): void;
   }
 
   export class GuildIntegration extends Base {
@@ -1799,7 +1652,6 @@ declare namespace Eris {
     reactions: { [s: string]: any; count: number; me: boolean };
     webhookID?: string;
     prefix?: string;
-    command?: Command;
     pinned: boolean;
     constructor(data: BaseData, client: Client);
     edit(content: MessageContent): Promise<Message<T>>;
@@ -1975,68 +1827,6 @@ declare namespace Eris {
     toString(): string;
     toJSON(props?: string[]): JSONCache;
     sendWS(op: number, _data: object, priority: boolean): void;
-  }
-
-  export class Command {
-    subcommands: { [s: string]: Command };
-    subcommandAliases: { [alias: string]: Command };
-    label: string;
-    parentCommand?: Command;
-    description: string;
-    fullDescription: string;
-    usage: string;
-    aliases: string[];
-    caseInsensitive: boolean;
-    hooks: Hooks;
-    requirements: {
-      userIDs?: string[] | GenericCheckFunction<string[]>;
-      roleIDs?: string[] | GenericCheckFunction<string[]>;
-      roleNames?: string[] | GenericCheckFunction<string[]>;
-      permissions?: { [s: string]: boolean } | GenericCheckFunction<{ [s: string]: boolean }>;
-      custom?: GenericCheckFunction<void>;
-    };
-    deleteCommand: boolean;
-    argsRequired: boolean;
-    guildOnly: boolean;
-    dmOnly: boolean;
-    cooldown: number;
-    cooldownExclusions: {
-      userIDs?: string[];
-      guildIDs?: string[];
-      channelIDs?: string[];
-    };
-    restartCooldown: boolean;
-    cooldownReturns: number;
-    cooldownMessage: string | boolean | GenericCheckFunction<string>;
-    invalidUsageMessage: string | boolean | GenericCheckFunction<string>;
-    permissionMessage: string | boolean | GenericCheckFunction<string>;
-    errorMessage: string | GenericCheckFunction<string>;
-    reactionButtons: null | {
-      emoji: string;
-      type: string;
-      response: CommandGenerator;
-      execute?: () => string;
-      responses?: (() => string)[];
-    }[];
-    reactionButtonTimeout: number;
-    defaultSubcommandOptions: CommandOptions;
-    hidden: boolean;
-    constructor(label: string, generate: CommandGenerator, options?: CommandOptions);
-    registerSubcommandAlias(alias: string, label: string): void;
-    registerSubcommand(label: string, generator: CommandGenerator, options?: CommandOptions): Command;
-    unregisterSubcommand(label: string): void;
-    toString(): string;
-  }
-
-  export class CommandClient extends Client {
-    commands: { [s: string]: Command };
-    constructor(token: string, options?: ClientOptions, commandOptions?: CommandClientOptions);
-    onMessageCreate(msg: Message): void;
-    registerGuildPrefix(guildID: string, prefix: string[] | string): void;
-    registerCommandAlias(alias: string, label: string): void;
-    registerCommand(label: string, generator: CommandGenerator, options?: CommandOptions): Command;
-    unregisterCommand(label: string): void;
-    toString(): string;
   }
 }
 
