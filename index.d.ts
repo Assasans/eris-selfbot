@@ -1,9 +1,8 @@
 import { EventEmitter } from "events";
-import { Duplex, Readable as ReadableStream, Stream } from "stream";
 import { Agent as HTTPSAgent } from "https";
 import { IncomingMessage, ClientRequest } from "http";
 
-declare function Eris(token: string, options?: Eris.ClientOptions): Eris.Client;
+declare function Eris(token: string, options: Eris.ClientOptions): Eris.Client;
 
 declare namespace Eris {
   export const Constants: Constants;
@@ -152,7 +151,6 @@ declare namespace Eris {
     agent?: HTTPSAgent;
     allowedMentions?: AllowedMentions;
     autoreconnect?: boolean;
-    compress?: boolean;
     connectionTimeout?: number;
     defaultImageFormat?: string;
     defaultImageSize?: number;
@@ -161,6 +159,7 @@ declare namespace Eris {
     getAllUsers?: boolean;
     guildCreateTimeout?: number;
     guildSubscriptions?: boolean;
+    identifyProperties: { [key: string]: unknown };
     intents?: number | IntentStrings[];
     largeThreshold?: number;
     lastShardID?: number;
@@ -174,6 +173,7 @@ declare namespace Eris {
     requestTimeout?: number;
     reconnectDelay?: ReconnectDelayFunction;
     restMode?: boolean;
+    userAgent: string;
     ws?: unknown;
   }
   interface CommandClientOptions {
@@ -1209,7 +1209,7 @@ declare namespace Eris {
     userGuildSettings: { [s: string]: GuildSettings };
     users: Collection<User>;
     userSettings: UserSettings;
-    constructor(token: string, options?: ClientOptions);
+    constructor(token: string, options: ClientOptions);
     acceptInvite(inviteID: string): Promise<Invite & InviteWithoutMetadata<null>>;
     addGroupRecipient(groupID: string, userID: string): Promise<void>;
     addGuildMemberRole(guildID: string, memberID: string, roleID: string, reason?: string): Promise<void>;
